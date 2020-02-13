@@ -1,0 +1,9 @@
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# gcp service account key file
+gcp_service_key.json
