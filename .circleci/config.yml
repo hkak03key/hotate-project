@@ -1,0 +1,123 @@
+version: 2.1
+executors:
+  terraform:
+    docker:
+      - image: hashicorp/terraform:0.12.20
+    working_directory: ~/
+
+#----------------------------------------
+commands:
+  create_gcp_credentials:
+    parameters:
+      cred_filepath:
+        type: string
+      cred_json:
+        type: string
+    steps:
+      - run:
+          name: create gcp credentials
+          command: |
+            echo "<< parameters.cred_json >>" >> << parameters.cred_filepath >>
+
+#----------------------------------------
+jobs:
+  check_format:
+    executor: terraform
+    parameters:
+      exec_directory:
+        type: string
+        default: terraform
+    steps:
+      - checkout:
+          path: project
+      - run: terraform version
+      - run:
+          name: terraform format check
+          command: |
+            cd project/<< parameters.exec_directory >>
+            terraform fmt -diff -check -recursive
+
+  plan:
+    executor: terraform
+    parameters:
+      cred_json:
+        type: string
+      exec_directory:
+        type: string
+    steps:
+      - checkout:
+          path: project
+      - create_gcp_credentials:
+          cred_json: << parameters.cred_json >>
+          cred_filepath: project/<< parameters.exec_directory >>/gcp_service_key.json
+      - run: terraform version
+      - run:
+          name: terraform init
+          command: |
+            cd project/<< parameters.exec_directory >>
+            terraform init
+      - run:
+          name: terraform validate
+          command: |
+            cd project/<< parameters.exec_directory >>
+            terraform validate
+      - run:
+          name: terraform plan
+          command: |
+            cd project/<< parameters.exec_directory >>
+            TF_STATUS=0
+            terraform plan -detailed-exitcode || TF_STATUS=$?
+            if [ $TF_STATUS -ne 2 ]; then
+              exit $TF_STATUS
+            fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - project/<< parameters.exec_directory >>
+
+  deploy:
+    executor: terraform
+    parameters:
+      exec_directory:
+        type: string
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: terraform apply
+          command: |
+            cd project/<< parameters.exec_directory >>
+            ls -la
+            terraform apply -auto-approve
+
+#----------------------------------------
+workflows:
+  approval_deploy:
+    jobs:
+      - check_format:
+          exec_directory: terraform
+      # ----------------------------------
+      - plan:
+          name: plan_prod
+          cred_json: ${PROD_GCP_SERVICE_KEY}
+          exec_directory: terraform/envs/prod
+          requires:
+            - check_format
+      - approval:
+          name: approval_prod
+          type: approval
+          requires:
+            - plan_prod
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          name: deploy_prod
+          exec_directory: terraform/envs/prod
+          requires:
+            - approval_prod
+          filters:
+            branches:
+              only:
+                - master
