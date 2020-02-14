@@ -121,3 +121,15 @@ workflows:
             branches:
               only:
                 - master
+      # ----------------------------------
+      - plan:
+          name: plan_stg
+          cred_json: ${STG_GCP_SERVICE_KEY}
+          exec_directory: terraform/envs/stg
+          requires:
+            - check_format
+      - deploy:
+          name: deploy_stg
+          exec_directory: terraform/envs/stg
+          requires:
+            - plan_stg
