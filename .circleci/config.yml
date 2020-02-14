@@ -5,9 +5,14 @@ executors:
       - image: hashicorp/terraform:0.12.20
     working_directory: ~/
 
+  gcloud:
+    docker:
+      - image: google/cloud-sdk
+    working_directory: ~/
+
 #----------------------------------------
 commands:
-  create_gcp_credentials:
+  create_gcp_credentials_file:
     parameters:
       cred_filepath:
         type: string
@@ -19,9 +24,22 @@ commands:
           command: |
             echo "<< parameters.cred_json >>" >> << parameters.cred_filepath >>
 
+  init_gcloud:
+    parameters:
+      project_id:
+        type: string
+      cred_json:
+        type: string
+    steps:
+      - run:
+          name: init gcloud
+          command: |
+            echo "<< parameters.cred_json >>" | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project << parameters.project_id >>
+
 #----------------------------------------
 jobs:
-  check_format:
+  tf_check_format:
     executor: terraform
     parameters:
       exec_directory:
@@ -37,7 +55,7 @@ jobs:
             cd project/<< parameters.exec_directory >>
             terraform fmt -diff -check -recursive
 
-  plan:
+  tf_plan:
     executor: terraform
     parameters:
       cred_json:
@@ -47,7 +65,7 @@ jobs:
     steps:
       - checkout:
           path: project
-      - create_gcp_credentials:
+      - create_gcp_credentials_file:
           cred_json: << parameters.cred_json >>
           cred_filepath: project/<< parameters.exec_directory >>/gcp_service_key.json
       - run: terraform version
@@ -75,7 +93,7 @@ jobs:
           paths:
             - project/<< parameters.exec_directory >>
 
-  deploy:
+  tf_deploy:
     executor: terraform
     parameters:
       exec_directory:
@@ -90,46 +108,77 @@ jobs:
             ls -la
             terraform apply -auto-approve
 
+  gcf_deploy:
+    executor: gcloud
+    parameters:
+      cred_json:
+        type: string
+      project_id:
+        type: string
+    steps:
+      - checkout:
+          path: project
+      - init_gcloud:
+          cred_json: << parameters.cred_json >>
+          project_id: << parameters.project_id >>
+      - run:
+          name: deploy
+          command: |
+            cd project
+            pip3 install pyyaml
+            git diff HEAD --name-only --relative=google_cloud_functions --diff-filter=AM -M100 | xargs --no-run-if-empty dirname | uniq | xargs -I {} --no-run-if-empty bash -c 'echo "deploy {}" && ./scripts/deploy_gcf.py google_cloud_functions/{}/gcf.yml'
+            git diff HEAD --name-only --relative=google_cloud_functions --diff-filter=D -M100 | xargs --no-run-if-empty dirname | uniq | xargs -I {} --no-run-if-empty bash -c 'echo "delete {}" && gcloud functions delete {}'
+
+
 #----------------------------------------
 workflows:
-  approval_deploy:
+  tf_deploy_workflow:
     jobs:
-      - check_format:
+      - tf_check_format:
           exec_directory: terraform
       # ----------------------------------
-      - plan:
-          name: plan_prod
+      - tf_plan:
+          name: tf_plan_prod
           cred_json: ${PROD_GCP_SERVICE_KEY}
           exec_directory: terraform/envs/prod
           requires:
-            - check_format
-      - approval:
-          name: approval_prod
+            - tf_check_format
+      - tf_approval:
+          name: tf_approval_prod
           type: approval
           requires:
-            - plan_prod
+            - tf_plan_prod
           filters:
             branches:
               only:
                 - master
-      - deploy:
+      - tf_deploy:
           name: deploy_prod
           exec_directory: terraform/envs/prod
           requires:
-            - approval_prod
+            - tf_approval_prod
           filters:
             branches:
               only:
                 - master
       # ----------------------------------
-      - plan:
-          name: plan_stg
+      - tf_plan:
+          name: tf_plan_stg
           cred_json: ${STG_GCP_SERVICE_KEY}
           exec_directory: terraform/envs/stg
           requires:
-            - check_format
-      - deploy:
-          name: deploy_stg
+            - tf_check_format
+      - tf_deploy:
+          name: tf_deploy_stg
           exec_directory: terraform/envs/stg
           requires:
-            - plan_stg
+            - tf_plan_stg
+  
+  # ----------------------------------
+  gcf_deploy_workflow:
+    jobs:
+      # ----------------------------------
+      - gcf_deploy:
+          name: gcf_deploy_stg
+          cred_json: ${STG_GCP_SERVICE_KEY}
+          project_id: hotate-project-stg
