@@ -34,17 +34,18 @@ def conv_dict_values(dic):
             ) for k, v in dic.items()
         }
 
-def create_cmd_array(name, dic):
+def create_cmd_array(name, dic, other_args):
     ret_origin = [["gcloud", "functions", "deploy", name]]
     ret_origin.extend([ ["--{}".format(k)] if v == True else ["--{}".format(k), v] for k, v in dic.items()])
-    return sum(ret_origin, [])
+    return sum(ret_origin, other_args, [])
 
 args = sys.argv
-file_path = args[1]
-curr_dir = pathlib.Path(file_path).resolve().parent
-name = curr_dir.name
+args.pop(0)
+conf_filepath = args.pop(-1)
+conf_filedir = pathlib.Path(conf_filepath).resolve().parent
+name = conf_filedir.name
 
-cmd_array = create_cmd_array(name, conv_dict_values(replace_source_path(drop_false(read_yaml(file_path)), curr_dir)))
+cmd_array = create_cmd_array(name, conv_dict_values(replace_source_path(drop_false(read_yaml(conf_filepath)), conf_filepath)), other_args)
 
 print("exec:", " ".join(cmd_array))
 subprocess.call(cmd_array)
