@@ -132,7 +132,7 @@ jobs:
 
 #----------------------------------------
 workflows:
-  tf_deploy_workflow:
+  deploy_workflow:
     jobs:
       - tf_check_format:
           exec_directory: terraform
@@ -143,8 +143,8 @@ workflows:
           exec_directory: terraform/envs/prod
           requires:
             - tf_check_format
-      - tf_approval:
-          name: tf_approval_prod
+      - approval:
+          name: approval_prod
           type: approval
           requires:
             - tf_plan_prod
@@ -153,14 +153,21 @@ workflows:
               only:
                 - master
       - tf_deploy:
-          name: deploy_prod
+          name: tf_deploy_prod
           exec_directory: terraform/envs/prod
           requires:
-            - tf_approval_prod
+            - approval_prod
           filters:
             branches:
               only:
                 - master
+      - gcf_deploy:
+          name: gcf_deploy_prod
+          cred_json: ${PROD_GCP_SERVICE_KEY}
+          project_id: hotate-project
+          requires:
+            - tf_deploy_prod
+
       # ----------------------------------
       - tf_plan:
           name: tf_plan_stg
