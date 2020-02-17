@@ -173,12 +173,10 @@ workflows:
           exec_directory: terraform/envs/stg
           requires:
             - tf_plan_stg
-  
-  # ----------------------------------
-  gcf_deploy_workflow:
-    jobs:
-      # ----------------------------------
       - gcf_deploy:
           name: gcf_deploy_stg
           cred_json: ${STG_GCP_SERVICE_KEY}
           project_id: hotate-project-stg
+          requires:
+            - tf_deploy_stg
+
