@@ -1,6 +1,0 @@
-region: asia-northeast1
-trigger-http: true
-source: ./src
-runtime: python37
-entry-point: hello_get
-memory: 128MB
