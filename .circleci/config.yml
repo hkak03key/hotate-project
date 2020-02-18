@@ -126,7 +126,7 @@ jobs:
           command: |
             cd project
             pip3 install pyyaml
-            git diff HEAD^ --name-only --relative=google_cloud_functions --diff-filter=AM -M100 | sed -r 's#/.*##g' | uniq | xargs -I {} --no-run-if-empty bash -c 'echo "deploy {}..." && ./scripts/deploy_gcf.py google_cloud_functions/{}/gcf.yml'
+            find google_cloud_functions/ -maxdepth 1 -mindepth 1 -type d | xargs -I {} basename {} | uniq | xargs -I {} bash -c 'echo "deploy {}..." && ./scripts/deploy_gcf.py google_cloud_functions/{}/gcf.yml'
             git diff HEAD^ --name-only --relative=google_cloud_functions --diff-filter=D -M100 | sed -r 's#/.*##g'| uniq | sort | join <(gcloud functions list | awk -F "  " '{print $1, "--region", $4}' | tail -1 | sort) - | xargs -I {} --no-run-if-empty bash -c 'echo "delete {}..." && gcloud functions delete {}'
             
 
