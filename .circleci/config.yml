@@ -91,7 +91,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - project/<< parameters.exec_directory >>
+            - project/terraform
 
   tf_deploy:
     executor: terraform
