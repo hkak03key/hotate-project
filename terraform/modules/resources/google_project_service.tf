@@ -10,8 +10,9 @@ resource "google_project_service" "project_service" {
 
 locals {
   services = [
-    "iam.googleapis.com",
+    "appengine.googleapis.com",
     "cloudscheduler.googleapis.com",
+    "iam.googleapis.com",
   ]
 }
 
