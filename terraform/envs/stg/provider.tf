@@ -1,5 +1,5 @@
 provider "google" {
   project     = "hotate-project-stg"
   region      = "asia-northeast1"
-  credentials = "gcp-service-key.json"
+  credentials = "gcp_service_key.json"
 }
