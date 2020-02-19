@@ -1,5 +1,8 @@
+data "google_project" "project" {
+}
+
 module "resources" {
   source  = "../../modules/resources"
-  project = "hotate-project"
+  project = data.google_project.project.name
   region  = "asia-northeast1"
 }
