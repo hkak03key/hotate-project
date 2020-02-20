@@ -8,9 +8,9 @@ resource "google_cloud_scheduler_job" "job" {
 
   http_target {
     http_method = "GET"
-    uri         = "https://cloudscheduler.googleapis.com/v1/projects/${var.project}/locations/${var.region}/jobs"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/hello_world"
 
-    oauth_token {
+    oidc_token {
       service_account_email = google_service_account.gcf_hello_world_invoker.email
     }
   }
@@ -22,10 +22,16 @@ resource "google_cloud_scheduler_job" "job" {
 }
 
 resource "google_service_account" "gcf_hello_world_invoker" {
-  account_id = "gcf-hello-world-invoker"
+  account_id   = "gcf-hello-world-invoker"
+  display_name = "gcf-hello-world-invoker"
 
   depends_on = [
     google_project_service.project_service["iam.googleapis.com"],
   ]
 }
 
+resource "google_project_iam_member" "gcf_hello_world_invoker" {
+  project = var.project
+  role    = "roles/cloudfunctions.invoker" #"roles/editor"
+  member  = "serviceAccount:${google_service_account.gcf_hello_world_invoker.email}"
+}
