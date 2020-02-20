@@ -14,9 +14,18 @@ resource "google_cloud_scheduler_job" "job" {
       service_account_email = google_service_account.gcf_hello_world_invoker.email
     }
   }
+
+  depends_on = [
+    google_project_service.project_service["cloudscheduler.googleapis.com"],
+    google_app_engine_application.app,
+  ]
 }
 
 resource "google_service_account" "gcf_hello_world_invoker" {
   account_id = "gcf-hello-world-invoker"
+
+  depends_on = [
+    google_project_service.project_service["iam.googleapis.com"],
+  ]
 }
 
