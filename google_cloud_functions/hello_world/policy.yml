@@ -1,6 +1,0 @@
-bindings:
-- members:
-  - user:hkak03key@gmail.com
-  - serviceAccount:gcf-hello-world-invoker@hotate-project-stg.iam.gserviceaccount.com
-  role: roles/cloudfunctions.invoker
-
