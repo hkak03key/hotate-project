@@ -8,11 +8,14 @@ Options:
     -p <policy_file>, --policy-file <policy_file>   iam-policyファイルを設定します。
 """
 
-import sys
-import yaml
+import os
 import pathlib
 import subprocess
+import sys
+import tempfile
+import yaml
 from docopt import docopt
+import google.auth
 
 def read_yaml(file_path):
     f = open(file_path, "r+")
@@ -65,10 +68,23 @@ ret = subprocess.call(deploy_cmd_array)
 if ret != 0:
     exit(ret)
 
+def format_file(src, formatter, dst=None):
+    wf = open(dst, mode="w+") if dst else tempfile.NamedTemporaryFile(mode='w+', delete=False)
+    with open(policy_filepath) as rf:
+        wf.write(rf.read().format(**formatter))
+    filename = dst if dst else wf.name
+    wf.close()
+    return filename
+
 policy_filepath = args["--policy-file"]
-set_iam_policy_cmd_array = ["gcloud", "functions", "set-iam-policy", name, "--region", config_params["region"], policy_filepath]
+_, project_id = google.auth.default()
+
+temp_policy_filename = format_file(policy_filepath, {"PROJECT_ID": project_id})
+
+set_iam_policy_cmd_array = ["gcloud", "functions", "set-iam-policy", name, "--region", config_params["region"], temp_policy_filename]
 
 print("exec:", " ".join(set_iam_policy_cmd_array))
 ret = subprocess.call(set_iam_policy_cmd_array)
-exit(ret)
+os.remove(temp_policy_filename)
 
+exit(ret)
