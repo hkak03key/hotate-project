@@ -29,17 +29,17 @@ def post_line(msg, secrets):
 
     headers = {
         "Content-Type" : "application/json; charset=UTF-8",
-        'Authorization': "Bearer {}".format(secrets["CHANNEL_ACCESS_TOKEN"]),
+        'Authorization': "Bearer {}".format(secrets.get("CHANNEL_ACCESS_TOKEN")),
     }
     res = requests.post(url, data=json.dumps(payload), headers=headers)
     return res
 
 
 def post_twitter(msg, secrets):
-    CK  = secrets["CONSUMER_API_KEY"]
-    CS  = secrets["CONSUMER_API_SECRET"]
-    AT  = secrets["ACCESS_TOKEN"]
-    ATS = secrets["ACCESS_TOKEN_SECRET"]
+    CK  = secrets.get("CONSUMER_API_KEY")
+    CS  = secrets.get("CONSUMER_API_SECRET")
+    AT  = secrets.get("ACCESS_TOKEN")
+    ATS = secrets.get("ACCESS_TOKEN_SECRET")
     twitter = OAuth1Session(CK, CS, AT, ATS) #認証処理
     
     url = "https://api.twitter.com/1.1/statuses/update.json" #ツイートポストエンドポイント
