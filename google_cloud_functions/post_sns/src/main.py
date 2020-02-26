@@ -5,15 +5,21 @@ import requests
 from requests_oauthlib import OAuth1Session
 from flask import jsonify
 
-def get_secret(project_id, secret_id, version_id="latest"):
+
+def get_secrets(project_id, secret_id, version_id="latest"):
     client = secretmanager.SecretManagerServiceClient()
-    name = client.secret_version_path(project_id, secret_id, version_id)
-    response = client.access_secret_version(name)
-    payload = response.payload.data.decode('UTF-8')
-    return json.loads(payload)
+    try:
+        name = client.secret_version_path(project_id, secret_id, version_id)
+        response = client.access_secret_version(name)
+        payload = response.payload.data.decode('UTF-8')
+        return json.loads(payload)
+    except Exception as e:
+        return None
 
 
 def post_line(msg, secrets):
+    if not secrets:
+        return "secret not found"
     url = "https://api.line.me/v2/bot/message/broadcast";
     payload = {
         "messages": [{
@@ -25,8 +31,8 @@ def post_line(msg, secrets):
         "Content-Type" : "application/json; charset=UTF-8",
         'Authorization': "Bearer {}".format(secrets["CHANNEL_ACCESS_TOKEN"]),
     }
-    r = requests.post(url, data=json.dumps(payload), headers=headers)
-    return r.text
+    res = requests.post(url, data=json.dumps(payload), headers=headers)
+    return res
 
 
 def post_twitter(msg, secrets):
@@ -45,11 +51,20 @@ def post_twitter(msg, secrets):
 def post(msg):
     _, project_id = google.auth.default()
     
-    ret = {target: post_func(msg, get_secret(project_id, target)) for target, post_func in
-        {
-            "LINE": post_line,
-    #        "twitter": post_twitter
-        }.items()}
+    ret = {
+        target: {
+            "status_code": res.status_code if res else 500,
+            "response": res.text if res else "secrets is not found."
+        } for target, res in {
+            i["target"]: i["post_func"](msg, i["secrets"]) if i["secrets"] else None
+                for i in [{"target": target, "post_func": post_func, "secrets": get_secrets(project_id, target)}
+                    for target, post_func in {
+                        "LINE": post_line,
+                        "twitter": post_twitter
+                    }.items()
+                ]
+            }.items()
+    }
     return ret
 
 
@@ -68,5 +83,5 @@ def main(request):
         return jsonify({"message": """Content-Type is required "application/json", and it needs "msg" key."""}), 400
 
     ret = post(msg)
-    return jsonify(ret), 200
+    return jsonify(ret), max([ v["status_code"] for k, v in ret.items()])
 
