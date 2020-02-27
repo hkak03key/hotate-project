@@ -61,7 +61,7 @@ def post_attendance():
     msg = create_attendance_message(events)
     if not msg:
         return "today is not attended.", 200
-    return call_functions("hotate-project-stg", "asia-northeast1", "post_sns", "post", {"msg": msg})
+    return call_functions(pj_id, "asia-northeast1", "post_sns", "post", {"msg": msg})
 
 
 def main(request):
