@@ -11,6 +11,7 @@ resource "google_project_service" "project_service" {
 locals {
   services = [
     "appengine.googleapis.com",
+    "calendar-json.googleapis.com",
     "cloudscheduler.googleapis.com",
     "iam.googleapis.com",
   ]

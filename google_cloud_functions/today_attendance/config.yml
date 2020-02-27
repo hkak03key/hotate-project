@@ -1,0 +1,6 @@
+region: asia-northeast1
+trigger-http: true
+source: ./src
+runtime: python37
+entry-point: main
+memory: 128MB
