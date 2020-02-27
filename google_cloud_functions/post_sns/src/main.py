@@ -12,14 +12,30 @@ def get_secrets(project_id, secret_id, version_id="latest"):
         name = client.secret_version_path(project_id, secret_id, version_id)
         response = client.access_secret_version(name)
         payload = response.payload.data.decode('UTF-8')
-        return json.loads(payload)
+        return {
+                "value": json.loads(payload),
+                "error_response": None,
+            }
+        return 
     except Exception as e:
-        return None
+        return {
+                "value": None,
+                "error_response": {
+                    "status_code": 500,
+                    "text": "{}: {}".format(type(e), e),
+                },
+            }
 
 
 def post_line(msg, secrets):
-    if not secrets:
-        return "secret not found"
+    try:
+        AT = secrets["CHANNEL_ACCESS_TOKEN"]
+    except Exception as e:
+        return {
+                "status_code": 500,
+                "text": "{}: {}".format(type(e), e),
+            }
+    
     url = "https://api.line.me/v2/bot/message/broadcast";
     payload = {
         "messages": [{
@@ -29,42 +45,49 @@ def post_line(msg, secrets):
 
     headers = {
         "Content-Type" : "application/json; charset=UTF-8",
-        'Authorization': "Bearer {}".format(secrets.get("CHANNEL_ACCESS_TOKEN")),
+        'Authorization': "Bearer {}".format(AT),
     }
     res = requests.post(url, data=json.dumps(payload), headers=headers)
-    return res
+    return {
+            "status_code": res.status_code,
+            "response": res.text
+        }
 
 
 def post_twitter(msg, secrets):
-    CK  = secrets.get("CONSUMER_API_KEY")
-    CS  = secrets.get("CONSUMER_API_SECRET")
-    AT  = secrets.get("ACCESS_TOKEN")
-    ATS = secrets.get("ACCESS_TOKEN_SECRET")
-    twitter = OAuth1Session(CK, CS, AT, ATS) #認証処理
+    try:
+        CK  = secrets["CONSUMER_API_KEY"]
+        CS  = secrets["CONSUMER_API_SECRET"]
+        AT  = secrets["ACCESS_TOKEN"]
+        ATS = secrets["ACCESS_TOKEN_SECRET"]
+        twitter = OAuth1Session(CK, CS, AT, ATS) #認証処理
+    except Exception as e:
+        return {
+                "status_code": 500,
+                "text": "{}: {}".format(type(e), e),
+            }
     
     url = "https://api.twitter.com/1.1/statuses/update.json" #ツイートポストエンドポイント
     params = {"status" : msg}
     res = twitter.post(url, params = params) #post送信
-    return res
+    return {
+            "status_code": res.status_code,
+            "response": res.text
+        }
 
 
 def post(msg):
     _, project_id = google.auth.default()
     
     ret = {
-        target: {
-            "status_code": res.status_code if res else 500,
-            "response": res.text if res else "secrets is not found."
-        } for target, res in {
-            i["target"]: i["post_func"](msg, i["secrets"]) if i["secrets"] else None
-                for i in [{"target": target, "post_func": post_func, "secrets": get_secrets(project_id, target)}
-                    for target, post_func in {
-                        "LINE": post_line,
-                        "twitter": post_twitter
-                    }.items()
-                ]
-            }.items()
-    }
+        i["target"]: i["post_func"](msg, i["secrets"]["value"]) if i["secrets"]["value"] else i["secrets"]["error_response"]
+            for i in [{"target": target, "post_func": post_func, "secrets": get_secrets(project_id, target)}
+                for target, post_func in {
+                    "LINE": post_line,
+                    "twitter": post_twitter
+                }.items()
+            ]
+        }
     return ret
 
 
