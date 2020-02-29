@@ -12,7 +12,7 @@ def _create_credentials():
 
 
 def _create_service(credentials):
-    return googleapiclient.discovery.build("calendar", "v3", credentials=credentials)
+    return googleapiclient.discovery.build('calendar', 'v3', credentials=credentials, cache_discovery=False)
 
 
 def generate_gcalendar_events(calendar_id, params):
