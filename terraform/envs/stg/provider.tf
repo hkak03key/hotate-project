@@ -9,3 +9,5 @@ provider "google-beta" {
   region      = "asia-northeast1"
   credentials = "gcp_service_key.json"
 }
+
+provider "archive" {}

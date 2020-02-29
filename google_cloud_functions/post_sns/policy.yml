@@ -1,5 +1,0 @@
-bindings:
-- members:
-  - serviceAccount:{PROJECT_ID}@appspot.gserviceaccount.com
-  role: roles/cloudfunctions.invoker
-

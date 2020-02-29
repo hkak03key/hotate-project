@@ -92,7 +92,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - project/terraform
+            - project
 
   tf_deploy:
     executor: terraform
@@ -108,33 +108,6 @@ jobs:
             cd project/<< parameters.exec_directory >>
             ls -la
             terraform apply -auto-approve
-
-  gcf_deploy:
-    executor: gcloud
-    parameters:
-      cred_json:
-        type: string
-      project_id:
-        type: string
-    steps:
-      - checkout:
-          path: project
-      - create_gcp_credentials_file:
-          cred_json: << parameters.cred_json >>
-          cred_filepath: ~/.config/gcloud/application_default_credentials.json
-      - init_gcloud:
-          cred_json: << parameters.cred_json >>
-          project_id: << parameters.project_id >>
-      - run:
-          name: deploy
-          command: |
-            cd project
-            pip3 install pyyaml docopt google-auth
-            find google_cloud_functions/ -maxdepth 1 -mindepth 1 -type d | xargs -I {} basename {} | uniq \
-                | xargs -L 1 -P 8 -I {} --no-run-if-empty bash -c 'echo "deploy {}..." && ./scripts/deploy_gcf.py -c google_cloud_functions/{}/config.yml -p google_cloud_functions/{}/policy.yml'
-            git diff HEAD^ --name-only --relative=google_cloud_functions --diff-filter=D -M100 | sed -r 's#/.*##g'| uniq | sort \
-                | join <(gcloud functions list | awk -F "  " '{print $1, "--region", $4}' | tail -1 | sort) - \
-                | xargs -L 1 -P 8 -I {} --no-run-if-empty bash -c 'echo "delete {}..." && gcloud functions delete {}'
 
 #----------------------------------------
 workflows:
@@ -167,12 +140,6 @@ workflows:
             branches:
               only:
                 - master
-      - gcf_deploy:
-          name: gcf_deploy_prod
-          cred_json: ${PROD_GCP_SERVICE_KEY}
-          project_id: hotate-project
-          requires:
-            - tf_deploy_prod
 
       # ----------------------------------
       - tf_plan:
@@ -186,10 +153,4 @@ workflows:
           exec_directory: terraform/envs/stg
           requires:
             - tf_plan_stg
-      - gcf_deploy:
-          name: gcf_deploy_stg
-          cred_json: ${STG_GCP_SERVICE_KEY}
-          project_id: hotate-project-stg
-          requires:
-            - tf_deploy_stg
 
