@@ -95,8 +95,8 @@ def post_schedule_update_info():
 
         updated_dates.sort()
 
-        infos = {"attendance": {}, "absence": []}
-        [infos["attendance"].update({date: places}) if len(places) else infos["absence"].push(date)
+        infos = {"attendance": {}, "absence": {}}
+        [infos["attendance" if len(places) else "absence"].update({date: places})
             for date, places in
                 {date: [i["summary"] for i in helper_get_event_items(calendar_id, date)]
                     for date in updated_dates
