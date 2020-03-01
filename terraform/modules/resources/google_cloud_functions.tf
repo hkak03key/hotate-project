@@ -20,11 +20,15 @@ data "archive_file" "gcf_code" {
 
 resource "google_storage_bucket_object" "gcf_code" {
   for_each = { for v in data.archive_file.gcf_code :
-    basename(v.output_path) => v.output_path
+    basename(v.output_path) => v
   }
-  name   = each.key
+  name = join("-",
+    [
+      each.value.output_md5,
+      each.key,
+  ])
   bucket = google_storage_bucket.gcf_code.name
-  source = each.value
+  source = each.value.output_path
 }
 
 ###################################################
