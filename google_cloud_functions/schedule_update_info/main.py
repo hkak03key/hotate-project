@@ -76,8 +76,11 @@ def create_message(infos):
             ret_msg += v + "\n"
             ret_msg += _helper_create_msg(infos, k)
             ret_msg += "\n"
-
-    ret_msg += "遊びに来てね〜！！";
+    
+    if not len(infos["attendance"]):
+        ret_msg += "よろしくね！！";
+    else:
+        ret_msg += "遊びに来てね〜！！";
     return ret_msg;
 
 
