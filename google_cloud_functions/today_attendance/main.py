@@ -75,9 +75,6 @@ def main(request):
         Response object using
         `make_response <http://flask.pocoo.org/docs/1.0/api/#flask.Flask.make_response>`.
     """
-    try:
-        result = post_attendance()
-        return result
-    except Exception as e:
-        return "{} {}".format(type(e), e), 500
+    result = post_attendance()
+    return result
 
