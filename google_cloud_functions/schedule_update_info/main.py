@@ -26,7 +26,7 @@ def call_functions(pj_id, region, func_name, method, data):
         "content-type": "application/json",
     }
     r = requests.request(method, url, headers=headers, data=json.dumps(data))
-    return r.text, r.status_code
+    return r
 
 
 def interpret_status(event_item, threshold_sec=60):
@@ -108,7 +108,10 @@ def post_schedule_update_info():
         msg = create_message(infos)
         if not msg:
             return "today is not attended.", 200
-        return call_functions(pj_id, "asia-northeast1", "post_sns", "post", {"msg": msg})
+
+        r = call_functions(pj_id, "asia-northeast1", "post_sns", "post", {"msg": msg})
+        r.raise_for_status()
+        return r.text, r.status_code
 
 
 def main(request):
