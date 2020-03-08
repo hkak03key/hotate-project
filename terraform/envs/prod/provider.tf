@@ -1,12 +1,17 @@
+locals {
+  project_id = jsondecode(file("gcp_service_key.json")).project_id
+  region     = "asia-northeast1"
+}
+
 provider "google" {
-  project     = "hotate-project"
-  region      = "asia-northeast1"
+  project     = local.project_id
+  region      = local.region
   credentials = "gcp_service_key.json"
 }
 
 provider "google-beta" {
-  project     = "hotate-project"
-  region      = "asia-northeast1"
+  project     = local.project_id
+  region      = local.region
   credentials = "gcp_service_key.json"
 }
 

@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket      = "hotate-stg-terraform-backend"
+    prefix      = "tfstate"
     credentials = "gcp_service_key.json"
   }
 }

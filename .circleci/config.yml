@@ -66,6 +66,11 @@ jobs:
     steps:
       - checkout:
           path: project
+      - run:
+          name: install jq
+          command: |
+            apk update
+            apk add --no-cache jq
       - create_gcp_credentials_file:
           cred_json: << parameters.cred_json >>
           cred_filepath: project/<< parameters.exec_directory >>/gcp_service_key.json
@@ -74,7 +79,7 @@ jobs:
           name: terraform init
           command: |
             cd project/<< parameters.exec_directory >>
-            terraform init
+            terraform init -backend-config="bucket=`cat gcp_service_key.json | jq -r .project_id`-terraform"
       - run:
           name: terraform validate
           command: |
