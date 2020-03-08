@@ -22,12 +22,8 @@ resource "google_storage_bucket_object" "gcf_code" {
   for_each = { for v in data.archive_file.gcf_code :
     basename(v.output_path) => v
   }
-  name = join("-",
-    [
-      each.value.output_md5,
-      each.key,
-  ])
-  bucket = google_storage_bucket.gcf_code.name
+  name   = "gcf/${each.key}/${each.value.output_md5}.zip"
+  bucket = local.tf_bucket
   source = each.value.output_path
 }
 
