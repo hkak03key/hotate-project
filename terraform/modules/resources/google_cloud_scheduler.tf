@@ -12,7 +12,7 @@ resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/today_attendance"
+    uri         = google_cloudfunctions_function.today_attendance.https_trigger_url
 
     oidc_token {
       service_account_email = "${var.project}@appspot.gserviceaccount.com"
@@ -37,7 +37,7 @@ resource "google_cloud_scheduler_job" "call_gcf_schedule_update_info" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/schedule_update_info"
+    uri         = google_cloudfunctions_function.schedule_update_info.https_trigger_url
 
     oidc_token {
       service_account_email = "${var.project}@appspot.gserviceaccount.com"
