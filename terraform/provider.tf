@@ -1,8 +1,3 @@
-locals {
-  project_id = jsondecode(file("gcp_service_key.json")).project_id
-  region     = "asia-northeast1"
-}
-
 provider "google" {
   project     = local.project_id
   region      = local.region
@@ -16,4 +11,3 @@ provider "google-beta" {
 }
 
 provider "archive" {}
-

@@ -122,40 +122,27 @@ workflows:
           exec_directory: terraform
       # ----------------------------------
       - tf_plan:
-          name: tf_plan_prod
-          cred_json: ${PROD_GCP_SERVICE_KEY}
-          exec_directory: terraform/envs/prod
+          name: tf_plan
+          cred_json: ${GCP_SERVICE_KEY}
+          exec_directory: terraform
           requires:
             - tf_check_format
       - approval:
-          name: approval_prod
+          name: approval
           type: approval
           requires:
-            - tf_plan_prod
+            - tf_plan
           filters:
             branches:
               only:
                 - master
       - tf_deploy:
-          name: tf_deploy_prod
-          exec_directory: terraform/envs/prod
+          name: tf_deploy
+          exec_directory: terraform
           requires:
-            - approval_prod
+            - approval
           filters:
             branches:
               only:
                 - master
-
-      # ----------------------------------
-      - tf_plan:
-          name: tf_plan_stg
-          cred_json: ${STG_GCP_SERVICE_KEY}
-          exec_directory: terraform/envs/stg
-          requires:
-            - tf_check_format
-      - tf_deploy:
-          name: tf_deploy_stg
-          exec_directory: terraform/envs/stg
-          requires:
-            - tf_plan_stg
 
