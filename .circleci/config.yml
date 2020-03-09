@@ -146,16 +146,3 @@ workflows:
               only:
                 - master
 
-      # ----------------------------------
-      - tf_plan:
-          name: tf_plan_stg
-          cred_json: ${STG_GCP_SERVICE_KEY}
-          exec_directory: terraform/envs/stg
-          requires:
-            - tf_check_format
-      - tf_deploy:
-          name: tf_deploy_stg
-          exec_directory: terraform/envs/stg
-          requires:
-            - tf_plan_stg
-
