@@ -1,7 +1,7 @@
 
 resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
   # 本番環境のみschedulerを作成
-  for_each = { for v in(var.project == "hotate-project" ? ["call_gcf_today_attendance"] : []) :
+  for_each = { for v in(local.project_id == "hotate-project" ? ["call_gcf_today_attendance"] : []) :
     v => v
   }
   name             = each.key
@@ -15,7 +15,7 @@ resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
     uri         = google_cloudfunctions_function.today_attendance.https_trigger_url
 
     oidc_token {
-      service_account_email = "${var.project}@appspot.gserviceaccount.com"
+      service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
     }
   }
 
@@ -26,7 +26,7 @@ resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
 
 resource "google_cloud_scheduler_job" "call_gcf_schedule_update_info" {
   # 本番環境のみschedulerを作成
-  for_each = { for v in(var.project == "hotate-project" ? ["call_gcf_schedule_update_info"] : []) :
+  for_each = { for v in(local.project_id == "hotate-project" ? ["call_gcf_schedule_update_info"] : []) :
     v => v
   }
   name             = each.key
@@ -40,7 +40,7 @@ resource "google_cloud_scheduler_job" "call_gcf_schedule_update_info" {
     uri         = google_cloudfunctions_function.schedule_update_info.https_trigger_url
 
     oidc_token {
-      service_account_email = "${var.project}@appspot.gserviceaccount.com"
+      service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
     }
   }
 

@@ -14,8 +14,8 @@ data "archive_file" "gcf_code" {
     v => v
   }
   type        = "zip"
-  source_dir  = "${path.module}/../../../google_cloud_functions/${each.value}"
-  output_path = "${path.module}/.workspace/${each.value}.zip"
+  source_dir  = "../google_cloud_functions/${each.value}"
+  output_path = ".workspace/${each.value}.zip"
 }
 
 resource "google_storage_bucket_object" "gcf_code" {
@@ -38,7 +38,7 @@ resource "google_cloudfunctions_function" "post_sns" {
   runtime     = "python37"
 
   available_memory_mb   = 128
-  service_account_email = "${var.project}@appspot.gserviceaccount.com"
+  service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
   source_archive_bucket = google_storage_bucket_object.gcf_code["post_sns.zip"].bucket
   source_archive_object = google_storage_bucket_object.gcf_code["post_sns.zip"].name
   trigger_http          = true
@@ -52,7 +52,7 @@ resource "google_cloudfunctions_function_iam_binding" "post_sns" {
 
   role = "roles/cloudfunctions.invoker"
   members = [
-    "serviceAccount:${var.project}@appspot.gserviceaccount.com",
+    "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
 }
 
@@ -64,7 +64,7 @@ resource "google_cloudfunctions_function" "schedule_update_info" {
   runtime     = "python37"
 
   available_memory_mb   = 128
-  service_account_email = "${var.project}@appspot.gserviceaccount.com"
+  service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
   source_archive_bucket = google_storage_bucket_object.gcf_code["schedule_update_info.zip"].bucket
   source_archive_object = google_storage_bucket_object.gcf_code["schedule_update_info.zip"].name
   trigger_http          = true
@@ -78,7 +78,7 @@ resource "google_cloudfunctions_function_iam_binding" "schedule_update_info" {
 
   role = "roles/cloudfunctions.invoker"
   members = [
-    "serviceAccount:${var.project}@appspot.gserviceaccount.com",
+    "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
 }
 
@@ -90,7 +90,7 @@ resource "google_cloudfunctions_function" "today_attendance" {
   runtime     = "python37"
 
   available_memory_mb   = 128
-  service_account_email = "${var.project}@appspot.gserviceaccount.com"
+  service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
   source_archive_bucket = google_storage_bucket_object.gcf_code["today_attendance.zip"].bucket
   source_archive_object = google_storage_bucket_object.gcf_code["today_attendance.zip"].name
   trigger_http          = true
@@ -104,7 +104,7 @@ resource "google_cloudfunctions_function_iam_binding" "today_attendance" {
 
   role = "roles/cloudfunctions.invoker"
   members = [
-    "serviceAccount:${var.project}@appspot.gserviceaccount.com",
+    "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
 }
 
