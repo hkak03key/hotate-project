@@ -2,6 +2,7 @@ import googleapiclient.discovery
 import google.auth
 import datetime
 import json
+import pandas as pd
 import pytz
 import requests
 import sys
@@ -9,10 +10,6 @@ import sys
 def create_credentials():
     credentials, _ = google.auth.default()
     return credentials
-
-
-def create_calendar_service(credentials):
-    return googleapiclient.discovery.build('calendar', 'v3', credentials=credentials, cache_discovery=False)
 
 
 def get_today_events(calendar_service, calendar_id):
@@ -26,13 +23,43 @@ def get_today_events(calendar_service, calendar_id):
                                         maxResults=100).execute().get("items")
 
 
+def get_today_message_format():
+    credentials=create_credentials()
+    gsht_svc = googleapiclient.discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+
+    spreadsheet_id = "1MpynE2Ieadi_NBVittyUH8sXYfJqTwOb7UFuQCg36go"
+    sht_range = "msg_list!A:C"
+
+    response=gsht_svc.spreadsheets().values().get(spreadsheetId=spreadsheet_id,
+                                    range=sht_range).execute()
+
+    df_master = pd.DataFrame(data=response["values"][1:], columns=response["values"][0]) \
+            .assign(date= lambda df: pd.to_datetime(df["date"], format='%Y/%m/%d'))
+
+    today = datetime.date.today()
+
+    df_candidate = df_master[df_master["date"].dt.date == today]
+
+    if not len(df_candidate):
+        today_timings = ["default", "weekday" if (today.weekday() >= 0 and today.weekday() < 5) else "weekend"]
+        df_candidate = df_master[df_master["timing"].isin(today_timings)]
+
+    ret_msgfmt = df_candidate.sample(1)["message"].values[0].replace("\\n", "\n") \
+        if len(df_candidate) \
+        else "やほ～！今日は、\n{places}\nで出勤だよ～！遊びに来てね～～！"
+
+    return ret_msgfmt
+
+
 def create_attendance_message(events):
     if not events or len(events) == 0:
         return None
-    ret_msg = "やほ～！今日は、\n"
+
+    places = ""
     for event in events:
-        ret_msg += "「" + event.get("summary") + "」";
-    ret_msg += "\nで出勤だよ～！遊びに来てね～～！";
+        places += "「" + event.get("summary") + "」"
+
+    ret_msg = get_today_message_format().format(places=places)
     return ret_msg
 
 
@@ -56,7 +83,7 @@ def call_functions(pj_id, region, func_name, method, data):
 def post_attendance():
     calendar_id = "go1v09pqgsfc586u5ugeco97j4@group.calendar.google.com"
     credentials, pj_id = google.auth.default()
-    calendar_service = create_calendar_service(credentials)
+    calendar_service = googleapiclient.discovery.build('calendar', 'v3', credentials=credentials, cache_discovery=False)
     events = get_today_events(calendar_service, calendar_id)
     msg = create_attendance_message(events)
     if not msg:
