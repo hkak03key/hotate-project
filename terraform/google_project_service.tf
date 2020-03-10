@@ -14,6 +14,7 @@ locals {
     "calendar-json.googleapis.com",
     "cloudscheduler.googleapis.com",
     "iam.googleapis.com",
+    "sheets.googleapis.com",
   ]
 }
 

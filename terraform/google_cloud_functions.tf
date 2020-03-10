@@ -89,7 +89,7 @@ resource "google_cloudfunctions_function" "today_attendance" {
   description = "today_attendance"
   runtime     = "python37"
 
-  available_memory_mb   = 128
+  available_memory_mb   = 256
   service_account_email = "${local.project_id}@appspot.gserviceaccount.com"
   source_archive_bucket = google_storage_bucket_object.gcf_code["today_attendance.zip"].bucket
   source_archive_object = google_storage_bucket_object.gcf_code["today_attendance.zip"].name
