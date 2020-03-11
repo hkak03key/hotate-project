@@ -2,7 +2,7 @@
 
 PJ_NAME=hotate-project
 SA_NAME=deploy
-BUCKET_NAME=hotate-terraform-backend
+BUCKET_NAME=$PJ_NAME-terraform
 
 SA_FULLNAME=$SA_NAME@$PJ_NAME.iam.gserviceaccount.com
 
