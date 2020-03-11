@@ -12,5 +12,5 @@ gcloud services enable iam.googleapis.com # 実行ユーザが所属するprojec
 
 gcloud iam service-accounts create $SA_NAME --display-name $SA_NAME --project $PJ_NAME
 gcloud projects add-iam-policy-binding $PJ_NAME --member serviceAccount:$SA_FULLNAME --role roles/editor
-gcloud iam service-accounts keys create ./gcp_service_key.json --iam-account $SA_FULLNAME --project $PJ_NAME
+gcloud iam service-accounts keys create `cd $(dirname $0) && pwd`/../terraform/gcp_service_key.json --iam-account $SA_FULLNAME --project $PJ_NAME
 
