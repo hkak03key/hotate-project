@@ -79,7 +79,7 @@ jobs:
           name: terraform init
           command: |
             cd project/<< parameters.exec_directory >>
-            terraform init -backend-config="bucket=`cat gcp_service_key.json | jq -r .project_id`-terraform"
+            ../scripts/terraform-init.sh
       - run:
           name: terraform validate
           command: |
