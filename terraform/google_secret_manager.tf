@@ -8,6 +8,10 @@ resource "google_secret_manager_secret_iam_binding" "LINE" {
   members = [
     "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
+
+  depends_on = [
+    google_project_service.project_services,
+  ]
 }
 
 resource "google_secret_manager_secret_iam_binding" "twitter" {
@@ -17,5 +21,9 @@ resource "google_secret_manager_secret_iam_binding" "twitter" {
   role      = "roles/secretmanager.secretAccessor"
   members = [
     "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
+  ]
+
+  depends_on = [
+    google_project_service.project_services,
   ]
 }

@@ -54,6 +54,10 @@ resource "google_cloudfunctions_function_iam_binding" "post_sns" {
   members = [
     "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
+
+  depends_on = [
+    google_project_service.project_services,
+  ]
 }
 
 #-------------------------------------------------------------
@@ -80,6 +84,10 @@ resource "google_cloudfunctions_function_iam_binding" "schedule_update_info" {
   members = [
     "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
   ]
+
+  depends_on = [
+    google_project_service.project_services,
+  ]
 }
 
 #-------------------------------------------------------------
@@ -105,6 +113,10 @@ resource "google_cloudfunctions_function_iam_binding" "today_attendance" {
   role = "roles/cloudfunctions.invoker"
   members = [
     "serviceAccount:${local.project_id}@appspot.gserviceaccount.com",
+  ]
+
+  depends_on = [
+    google_project_service.project_services,
   ]
 }
 

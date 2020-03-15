@@ -1,5 +1,5 @@
 
-resource "google_project_service" "project_service" {
+resource "google_project_service" "project_services" {
   for_each = { for v in local.services :
     v => v
   }

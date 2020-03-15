@@ -20,7 +20,7 @@ resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
   }
 
   depends_on = [
-    google_project_service.project_service["cloudscheduler.googleapis.com"],
+    google_project_service.project_services,
   ]
 }
 
@@ -45,7 +45,7 @@ resource "google_cloud_scheduler_job" "call_gcf_schedule_update_info" {
   }
 
   depends_on = [
-    google_project_service.project_service["cloudscheduler.googleapis.com"],
+    google_project_service.project_services,
   ]
 }
 

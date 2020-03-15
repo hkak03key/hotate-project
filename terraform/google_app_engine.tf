@@ -4,6 +4,6 @@ resource "google_app_engine_application" "app" {
   location_id = local.region
 
   depends_on = [
-    google_project_service.project_service["appengine.googleapis.com"],
+    google_project_service.project_services,
   ]
 }
