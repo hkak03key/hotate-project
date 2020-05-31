@@ -12,8 +12,10 @@ locals {
   services = [
     "appengine.googleapis.com",
     "calendar-json.googleapis.com",
+    "cloudfunctions.googleapis.com",
     "cloudscheduler.googleapis.com",
     "iam.googleapis.com",
+    "secretmanager.googleapis.com",
     "sheets.googleapis.com",
   ]
 }
