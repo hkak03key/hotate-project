@@ -6,7 +6,7 @@ resource "google_cloud_scheduler_job" "call_gcf_today_attendance" {
   }
   name             = each.key
   description      = "call gcf today_attendance"
-  schedule         = "0 17 * * *"
+  schedule         = "0 14 * * *"
   time_zone        = "Asia/Tokyo"
   attempt_deadline = "120s"
 
@@ -31,7 +31,7 @@ resource "google_cloud_scheduler_job" "call_gcf_schedule_update_info" {
   }
   name             = each.key
   description      = "call gcf schedule_update_info"
-  schedule         = "30 08-23/7 * * *"
+  schedule         = "30 0-21/7 * * *"
   time_zone        = "Asia/Tokyo"
   attempt_deadline = "180s"
 
